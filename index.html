@@ -2,11 +2,11 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>NapoliAI Blu 🇳🇵</title>
+<title>NapoliAI Blu Streaming 🇳🇵</title>
 <style>
   body {
     font-family: 'Arial', sans-serif;
-    background: #cce6ff; /* sfondo blu chiaro NapoliAI */
+    background: #cce6ff;
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -14,7 +14,7 @@
   }
 
   h1 {
-    background: #004080; /* blu scuro NapoliAI */
+    background: #004080;
     color: white;
     padding: 20px;
     text-align: center;
@@ -22,7 +22,6 @@
     font-size: 2em;
   }
 
-  /* Contenitore chat */
   .chat-wrapper {
     flex: 1;
     display: flex;
@@ -32,7 +31,6 @@
     overflow-y: auto;
   }
 
-  /* Baloon stile WhatsApp ma blu e più grandi */
   .msg {
     max-width: 70%;
     padding: 15px 20px;
@@ -45,14 +43,14 @@
   }
 
   .user {
-    background: #99ccff; /* blu chiaro */
+    background: #99ccff;
     align-self: flex-end;
     border-bottom-right-radius: 0;
     color: #004080;
   }
 
   .ai {
-    background: #004080; /* blu scuro */
+    background: #004080;
     color: white;
     align-self: flex-start;
     border-bottom-left-radius: 0;
@@ -63,7 +61,6 @@
     to {opacity:1; transform: translateY(0);}
   }
 
-  /* Input fisso in basso più grande */
   .input-area {
     display: flex;
     padding: 10px;
@@ -97,7 +94,6 @@
     padding: 5px;
   }
 
-  /* Responsive automatico */
   @media(max-width:600px){
     .msg { max-width: 80%; font-size: 1.1em; padding: 12px 16px; }
     .input-area input, .input-area button { font-size: 1.1em; padding: 14px; }
@@ -117,17 +113,17 @@
   <button onclick="resetChat()">RESET</button>
 </div>
 
-<footer>Powered by NapoliAI – Fatto da Alfonso Elefante</footer>
+<footer>Powered by NapoliAI – Dialetto stretto napoletano 💙</footer>
 
 <script src="https://js.puter.com/v2/"></script>
 <script>
-  // Recupera la conversazione salvata in locale
+  const chatDiv = document.getElementById("chat");
+  const input = document.getElementById("msg");
+
+  // Conversazione salvata in locale
   let conversation = JSON.parse(localStorage.getItem('napolia_conversation')) || [
     { role: "system", content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Usa emoji tipiche napoletane e tono allegro e simpatico." }
   ];
-
-  const chatDiv = document.getElementById("chat");
-  const input = document.getElementById("msg");
 
   function renderChat() {
     chatDiv.innerHTML = "";
@@ -135,7 +131,7 @@
       if(msg.role === "system") continue;
       const div = document.createElement("div");
       div.classList.add("msg", msg.role==="user"?"user":"ai");
-      div.innerHTML = msg.content + (msg.role==="user"?" 👤":" 🤖");
+      div.innerHTML = msg.content + (msg.role==="user"?" 🏠":" 🎉🍕🎭");
       chatDiv.appendChild(div);
     }
     chatDiv.scrollTop = chatDiv.scrollHeight;
@@ -152,10 +148,28 @@
     renderChat();
     saveConversation();
 
-    const response = await puter.ai.chat(conversation, { model: "gpt-5-nano" });
-    conversation.push({ role: "assistant", content: response.message.content });
-    renderChat();
-    saveConversation();
+    // Creiamo un div per lo streaming
+    const aiDiv = document.createElement("div");
+    aiDiv.classList.add("msg", "ai");
+    aiDiv.innerHTML = ""; // inizialmente vuoto
+    chatDiv.appendChild(aiDiv);
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+
+    // Stream con Puter AI
+    try {
+      const response = await puter.ai.chat(userMsg, { model: "gpt-5-nano", stream: true });
+      for await (const part of response) {
+        if(part?.text) {
+          aiDiv.innerHTML += part.text;
+          chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+      }
+      // Salviamo la risposta finale
+      conversation.push({ role: "assistant", content: aiDiv.innerHTML });
+      saveConversation();
+    } catch(err) {
+      aiDiv.innerHTML = "⚠️ Errore AI: " + err.message;
+    }
   }
 
   function saveConversation() {
