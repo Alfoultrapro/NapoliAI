@@ -179,7 +179,7 @@
   function resetChat() {
     if(confirm("Sei sicuro di voler resettare la chat? Tutti i messaggi verranno cancellati.")) {
       conversation = [
-        { role: "system", content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Usa emoji tipiche napoletane e tono allegro e simpatico." }
+        { role: "system", content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Rispondi sempre in napoletano senza mischiare italiano. Usa emoji tipiche napoletane e tono allegro e simpatico.." }
       ];
       localStorage.removeItem('napolia_conversation');
       renderChat();
