@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>NapoliAI Blu Streaming 🇳🇵</title>
+<title>NapoliAI</title>
 <style>
   body {
     font-family: 'Arial', sans-serif;
@@ -103,7 +103,7 @@
 </head>
 <body>
 
-<h1>NapoliAI 🇳🇵</h1>
+<h1>NapoliAI</h1>
 
 <div class="chat-wrapper" id="chat"></div>
 
@@ -131,7 +131,7 @@
       if(msg.role === "system") continue;
       const div = document.createElement("div");
       div.classList.add("msg", msg.role==="user"?"user":"ai");
-      div.innerHTML = msg.content + (msg.role==="user"?" 🏠":" 🎉🍕🎭");
+      div.innerHTML = msg.content + (msg.role==="user"?" 🏠":" 🤖");
       chatDiv.appendChild(div);
     }
     chatDiv.scrollTop = chatDiv.scrollHeight;
@@ -156,8 +156,36 @@
     chatDiv.scrollTop = chatDiv.scrollHeight;
 
     // Stream con Puter AI
+
+  // Stream con Puter AI in napoletano
+const systemPrompt = {
+  role: "system",
+  content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Rispondi sempre in napoletano senza mischiare italiano. Usa emoji tipiche napoletane e tono allegro e simpatico."
+};
+
+async function send() {
+    const userMsg = input.value.trim();
+    if(!userMsg) return;
+    input.value = "";
+
+    conversation.push({ role: "user", content: userMsg });
+    renderChat();
+    saveConversation();
+
+    // Creiamo div AI
+    const aiDiv = document.createElement("div");
+    aiDiv.classList.add("msg", "ai");
+    aiDiv.innerHTML = "";
+    chatDiv.appendChild(aiDiv);
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+
     try {
-      const response = await puter.ai.chat(userMsg, { model: "gpt-5-nano", stream: true });
+      // Streaming con contesto system
+      const response = await puter.ai.chat(
+        [systemPrompt, ...conversation.filter(m => m.role !== "system")], 
+        { model: "gpt-5-nano", stream: true }
+      );
+
       for await (const part of response) {
         if(part?.text) {
           aiDiv.innerHTML += part.text;
