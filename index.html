@@ -16,10 +16,10 @@
   h1 {
     background: #004080;
     color: white;
-    padding: 20px;
+    padding: 25px;
     text-align: center;
     margin: 0;
-    font-size: 2em;
+    font-size: 2.8em; /* Titolo più grande */
   }
 
   .chat-wrapper {
@@ -27,17 +27,17 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding: 15px;
+    padding: 20px;
     overflow-y: auto;
   }
 
   .msg {
     max-width: 70%;
-    padding: 15px 20px;
-    margin-bottom: 12px;
+    padding: 18px 24px;   /* messaggi più grandi */
+    margin-bottom: 15px;
     border-radius: 25px;
-    font-size: 1.2em;
-    line-height: 1.5em;
+    font-size: 1.6em;     /* font più grande */
+    line-height: 1.6em;
     word-wrap: break-word;
     animation: fadeIn 0.2s ease;
   }
@@ -63,23 +63,23 @@
 
   .input-area {
     display: flex;
-    padding: 10px;
-    gap: 8px;
+    padding: 12px;
+    gap: 10px;
     border-top: 2px solid #004080;
     background: #cce6ff;
   }
 
   .input-area input {
     flex: 1;
-    padding: 16px;
-    font-size: 1.2em;
+    padding: 20px;         /* input più grande */
+    font-size: 1.5em;      /* font più grande */
     border-radius: 30px;
     border: 2px solid #004080;
   }
 
   .input-area button {
-    padding: 16px 24px;
-    font-size: 1.2em;
+    padding: 18px 26px;     /* pulsanti più grandi */
+    font-size: 1.5em;       /* font più grande */
     border-radius: 30px;
     border: none;
     background: #004080;
@@ -89,15 +89,15 @@
 
   footer {
     text-align: center;
-    font-size: 0.9em;
+    font-size: 1em;       /* leggermente più grande */
     color: #004080;
-    padding: 5px;
+    padding: 6px;
   }
 
   @media(max-width:600px){
-    .msg { max-width: 80%; font-size: 1.1em; padding: 12px 16px; }
-    .input-area input, .input-area button { font-size: 1.1em; padding: 14px; }
-    h1 { font-size: 1.8em; padding: 15px; }
+    .msg { max-width: 80%; font-size: 1.4em; padding: 14px 18px; }
+    .input-area input, .input-area button { font-size: 1.4em; padding: 16px; }
+    h1 { font-size: 2.2em; padding: 18px; }
   }
 </style>
 </head>
@@ -120,16 +120,12 @@
   const chatDiv = document.getElementById("chat");
   const input = document.getElementById("msg");
 
-  // Messaggio system obbligatorio per il dialetto napoletano
   const systemPrompt = {
     role: "system",
     content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Rispondi sempre in napoletano, usa emoji tipiche e tono allegro."
   };
 
-  // Conversazione salvata in locale
-  let conversation = JSON.parse(localStorage.getItem('napolia_conversation')) || [
-    systemPrompt
-  ];
+  let conversation = JSON.parse(localStorage.getItem('napolia_conversation')) || [systemPrompt];
 
   function renderChat() {
     chatDiv.innerHTML = "";
@@ -137,7 +133,7 @@
       if(msg.role === "system") continue;
       const div = document.createElement("div");
       div.classList.add("msg", msg.role==="user"?"user":"ai");
-      div.innerHTML = msg.content + (msg.role==="user"?" 🏠":" 🤖");
+      div.innerHTML = msg.content + (msg.role==="user"?" 🏠":" 🎉🍕🎭");
       chatDiv.appendChild(div);
     }
     chatDiv.scrollTop = chatDiv.scrollHeight;
@@ -150,19 +146,16 @@
     if(!userMsg) return;
     input.value = "";
 
-    // Salva messaggio utente
     conversation.push({ role: "user", content: userMsg });
     renderChat();
     saveConversation();
 
-    // Div per la risposta AI
     const aiDiv = document.createElement("div");
     aiDiv.classList.add("msg", "ai");
     chatDiv.appendChild(aiDiv);
     chatDiv.scrollTop = chatDiv.scrollHeight;
 
     try {
-      // Streaming con Puter AI usando array corretto
       const response = await puter.ai.chat(
         [systemPrompt, ...conversation.filter(m => m.role !== "system")],
         { model: "gpt-5-nano", stream: true }
@@ -175,7 +168,6 @@
         }
       }
 
-      // Salva risposta finale
       conversation.push({ role: "assistant", content: aiDiv.innerHTML });
       saveConversation();
 
