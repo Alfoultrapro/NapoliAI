@@ -103,7 +103,7 @@
 </head>
 <body>
 
-<h1>NapoliAI</h1>
+<h1>NapoliAI 🇳🇵</h1>
 
 <div class="chat-wrapper" id="chat"></div>
 
@@ -120,9 +120,15 @@
   const chatDiv = document.getElementById("chat");
   const input = document.getElementById("msg");
 
+  // Messaggio system obbligatorio per il dialetto napoletano
+  const systemPrompt = {
+    role: "system",
+    content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Rispondi sempre in napoletano, usa emoji tipiche e tono allegro."
+  };
+
   // Conversazione salvata in locale
   let conversation = JSON.parse(localStorage.getItem('napolia_conversation')) || [
-    { role: "system", content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Usa emoji tipiche napoletane e tono allegro e simpatico." }
+    systemPrompt
   ];
 
   function renderChat() {
@@ -144,45 +150,21 @@
     if(!userMsg) return;
     input.value = "";
 
+    // Salva messaggio utente
     conversation.push({ role: "user", content: userMsg });
     renderChat();
     saveConversation();
 
-    // Creiamo un div per lo streaming
+    // Div per la risposta AI
     const aiDiv = document.createElement("div");
     aiDiv.classList.add("msg", "ai");
-    aiDiv.innerHTML = ""; // inizialmente vuoto
-    chatDiv.appendChild(aiDiv);
-    chatDiv.scrollTop = chatDiv.scrollHeight;
-
-    // Stream con Puter AI
-
-  // Stream con Puter AI in napoletano
-const systemPrompt = {
-  role: "system",
-  content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Rispondi sempre in napoletano senza mischiare italiano. Usa emoji tipiche napoletane e tono allegro e simpatico."
-};
-
-async function send() {
-    const userMsg = input.value.trim();
-    if(!userMsg) return;
-    input.value = "";
-
-    conversation.push({ role: "user", content: userMsg });
-    renderChat();
-    saveConversation();
-
-    // Creiamo div AI
-    const aiDiv = document.createElement("div");
-    aiDiv.classList.add("msg", "ai");
-    aiDiv.innerHTML = "";
     chatDiv.appendChild(aiDiv);
     chatDiv.scrollTop = chatDiv.scrollHeight;
 
     try {
-      // Streaming con contesto system
+      // Streaming con Puter AI usando array corretto
       const response = await puter.ai.chat(
-        [systemPrompt, ...conversation.filter(m => m.role !== "system")], 
+        [systemPrompt, ...conversation.filter(m => m.role !== "system")],
         { model: "gpt-5-nano", stream: true }
       );
 
@@ -192,9 +174,11 @@ async function send() {
           chatDiv.scrollTop = chatDiv.scrollHeight;
         }
       }
-      // Salviamo la risposta finale
+
+      // Salva risposta finale
       conversation.push({ role: "assistant", content: aiDiv.innerHTML });
       saveConversation();
+
     } catch(err) {
       aiDiv.innerHTML = "⚠️ Errore AI: " + err.message;
     }
@@ -206,9 +190,7 @@ async function send() {
 
   function resetChat() {
     if(confirm("Sei sicuro di voler resettare la chat? Tutti i messaggi verranno cancellati.")) {
-      conversation = [
-        { role: "system", content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Rispondi sempre in napoletano senza mischiare italiano. Usa emoji tipiche napoletane e tono allegro e simpatico.." }
-      ];
+      conversation = [systemPrompt];
       localStorage.removeItem('napolia_conversation');
       renderChat();
     }
