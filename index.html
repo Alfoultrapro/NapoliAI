@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>NapoliAI Blu 🇳🇵</title>
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    background: #cce6ff; /* sfondo blu chiaro NapoliAI */
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+  }
+
+  h1 {
+    background: #004080; /* blu scuro NapoliAI */
+    color: white;
+    padding: 20px;
+    text-align: center;
+    margin: 0;
+    font-size: 2em;
+  }
+
+  /* Contenitore chat */
+  .chat-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 15px;
+    overflow-y: auto;
+  }
+
+  /* Baloon stile WhatsApp ma blu e più grandi */
+  .msg {
+    max-width: 70%;
+    padding: 15px 20px;
+    margin-bottom: 12px;
+    border-radius: 25px;
+    font-size: 1.2em;
+    line-height: 1.5em;
+    word-wrap: break-word;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .user {
+    background: #99ccff; /* blu chiaro */
+    align-self: flex-end;
+    border-bottom-right-radius: 0;
+    color: #004080;
+  }
+
+  .ai {
+    background: #004080; /* blu scuro */
+    color: white;
+    align-self: flex-start;
+    border-bottom-left-radius: 0;
+  }
+
+  @keyframes fadeIn {
+    from {opacity:0; transform: translateY(10px);}
+    to {opacity:1; transform: translateY(0);}
+  }
+
+  /* Input fisso in basso più grande */
+  .input-area {
+    display: flex;
+    padding: 10px;
+    gap: 8px;
+    border-top: 2px solid #004080;
+    background: #cce6ff;
+  }
+
+  .input-area input {
+    flex: 1;
+    padding: 16px;
+    font-size: 1.2em;
+    border-radius: 30px;
+    border: 2px solid #004080;
+  }
+
+  .input-area button {
+    padding: 16px 24px;
+    font-size: 1.2em;
+    border-radius: 30px;
+    border: none;
+    background: #004080;
+    color: white;
+    cursor: pointer;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 0.9em;
+    color: #004080;
+    padding: 5px;
+  }
+
+  /* Responsive automatico */
+  @media(max-width:600px){
+    .msg { max-width: 80%; font-size: 1.1em; padding: 12px 16px; }
+    .input-area input, .input-area button { font-size: 1.1em; padding: 14px; }
+    h1 { font-size: 1.8em; padding: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>NapoliAI 🇳🇵</h1>
+
+<div class="chat-wrapper" id="chat"></div>
+
+<div class="input-area">
+  <input id="msg" placeholder="Scrivi cca...">
+  <button onclick="send()">Invia</button>
+  <button onclick="resetChat()">RESET</button>
+</div>
+
+<footer>Powered by NapoliAI – Fatto da Alfonso Elefante</footer>
+
+<script src="https://js.puter.com/v2/"></script>
+<script>
+  // Recupera la conversazione salvata in locale
+  let conversation = JSON.parse(localStorage.getItem('napolia_conversation')) || [
+    { role: "system", content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Usa emoji tipiche napoletane e tono allegro e simpatico." }
+  ];
+
+  const chatDiv = document.getElementById("chat");
+  const input = document.getElementById("msg");
+
+  function renderChat() {
+    chatDiv.innerHTML = "";
+    for (let msg of conversation) {
+      if(msg.role === "system") continue;
+      const div = document.createElement("div");
+      div.classList.add("msg", msg.role==="user"?"user":"ai");
+      div.innerHTML = msg.content + (msg.role==="user"?" 👤":" 🤖");
+      chatDiv.appendChild(div);
+    }
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  }
+
+  renderChat();
+
+  async function send() {
+    const userMsg = input.value.trim();
+    if(!userMsg) return;
+    input.value = "";
+
+    conversation.push({ role: "user", content: userMsg });
+    renderChat();
+    saveConversation();
+
+    const response = await puter.ai.chat(conversation, { model: "gpt-5-nano" });
+    conversation.push({ role: "assistant", content: response.message.content });
+    renderChat();
+    saveConversation();
+  }
+
+  function saveConversation() {
+    localStorage.setItem('napolia_conversation', JSON.stringify(conversation));
+  }
+
+  function resetChat() {
+    if(confirm("Sei sicuro di voler resettare la chat? Tutti i messaggi verranno cancellati.")) {
+      conversation = [
+        { role: "system", content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Usa emoji tipiche napoletane e tono allegro e simpatico." }
+      ];
+      localStorage.removeItem('napolia_conversation');
+      renderChat();
+    }
+  }
+
+  input.addEventListener("keypress", function(e){
+    if(e.key === "Enter") send();
+  });
+</script>
+
+</body>
+</html>
