@@ -18,7 +18,7 @@ header{
   color:white;
   padding:22px;
   text-align:center;
-  font-size:2.5em;
+  font-size:2.4em;
 }
 #chat{
   flex:1;
@@ -29,10 +29,10 @@ header{
 }
 .msg{
   max-width:80%;
-  padding:18px 22px;
+  padding:16px 20px;
   margin-bottom:14px;
   border-radius:22px;
-  font-size:1.4em;
+  font-size:1.3em;
 }
 .user{
   background:#99ccff;
@@ -44,6 +44,15 @@ header{
   color:white;
   align-self:flex-start;
 }
+.time{
+  font-size:0.7em;
+  opacity:0.8;
+  margin-top:6px;
+}
+.typing{
+  font-style:italic;
+  opacity:0.7;
+}
 .input-area{
   display:flex;
   gap:10px;
@@ -54,17 +63,20 @@ header{
 input{
   flex:1;
   padding:16px;
-  font-size:1.3em;
+  font-size:1.2em;
   border-radius:20px;
   border:2px solid #004080;
 }
 button{
   padding:16px 22px;
-  font-size:1.2em;
+  font-size:1.1em;
   border-radius:20px;
   border:2px solid #004080;
   background:#004080;
   color:white;
+}
+button:disabled{
+  opacity:0.5;
 }
 </style>
 </head>
@@ -76,86 +88,123 @@ button{
 
 <div class="input-area">
   <input id="input" placeholder="Scriveme...">
-  <button onclick="send()">Invia</button>
+  <button id="sendBtn" onclick="send()">Invia</button>
   <button onclick="resetChat()">Reset</button>
 </div>
 
 <script src="https://js.puter.com/v2/"></script>
 <script>
-const chat=document.getElementById("chat");
-const input=document.getElementById("input");
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+const sendBtn = document.getElementById("sendBtn");
 
+/* 💾 STORAGE */
+let conversation = JSON.parse(localStorage.getItem("napoli_chat")) || [];
 let longMemory = JSON.parse(localStorage.getItem("napoli_memory")) || {};
 
 const systemPrompt = `
 Si NapoliAI.
 Parla SOLO in dialetto napoletano stretto.
 Si naturale, amichevole e chiaro.
-Usa 'a memoria si serve.
 `;
 
-let conversation=[{role:"system",content:systemPrompt}];
+/* 🕒 ORA */
+function now(){
+  return new Date().toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+}
 
-function saveMemory(){
+/* 💾 SAVE */
+function saveAll(){
+  localStorage.setItem("napoli_chat", JSON.stringify(conversation));
   localStorage.setItem("napoli_memory", JSON.stringify(longMemory));
 }
 
+/* 🎨 RENDER */
 function render(){
   chat.innerHTML="";
   conversation.forEach(m=>{
-    if(m.role==="system") return;
     const d=document.createElement("div");
     d.className="msg "+(m.role==="user"?"user":"ai");
-    d.innerHTML=m.content;
+    d.innerHTML = `
+      ${m.content}
+      <div class="time">${m.time}</div>
+    `;
     chat.appendChild(d);
   });
-  chat.scrollTop=chat.scrollHeight;
+  chat.scrollTop = chat.scrollHeight;
 }
 
+render();
+
+/* 💬 SEND */
 async function send(){
-  const text=input.value.trim();
+  const text = input.value.trim();
   if(!text) return;
   input.value="";
+  sendBtn.disabled=true;
 
-  conversation.push({role:"user",content:text});
+  conversation.push({
+    role:"user",
+    content:text,
+    time:now()
+  });
+  saveAll();
   render();
 
+  const typingDiv=document.createElement("div");
+  typingDiv.className="msg ai typing";
+  typingDiv.textContent="NapoliAI sta scrivenn...";
+  chat.appendChild(typingDiv);
+  chat.scrollTop=chat.scrollHeight;
+
+  const response = await puter.ai.chat(
+    [
+      { role:"system", content: systemPrompt },
+      ...conversation.slice(-10).map(m=>({
+        role: m.role==="user"?"user":"assistant",
+        content: m.content
+      }))
+    ],
+    { model:"gpt-4.1-nano", stream:true }
+  );
+
+  typingDiv.remove();
+
+  let full="";
   const aiDiv=document.createElement("div");
   aiDiv.className="msg ai";
   chat.appendChild(aiDiv);
 
-  const memTxt = Object.keys(longMemory).length
-    ? "Memoria utente: "+JSON.stringify(longMemory)
-    : "";
-
-  const response = await puter.ai.chat(
-    [
-      { role:"system", content: systemPrompt + "\n" + memTxt },
-      ...conversation.slice(-8)
-    ],
-    { model:"gpt-5-nano", stream:true }
-  );
-
-  let full="";
   for await(const part of response){
     if(part?.text){
       full+=part.text;
-      aiDiv.innerHTML+=part.text;
+      aiDiv.innerHTML=full;
+      chat.scrollTop=chat.scrollHeight;
     }
   }
 
-  // esempio memoria automatica
-  if(full.includes("me ricordo")){
+  conversation.push({
+    role:"assistant",
+    content:full,
+    time:now()
+  });
+
+  // 🧠 memoria automatica semplice
+  if(full.toLowerCase().includes("me ricordo")){
     longMemory.ultima_info = full;
-    saveMemory();
   }
+
+  saveAll();
+  render();
+  sendBtn.disabled=false;
 }
 
+/* 🧹 RESET */
 function resetChat(){
-  if(confirm("Vuò cancella tutto?")){
-    conversation=[{role:"system",content:systemPrompt}];
+  if(confirm("Vuò cancella tutta 'a chat e 'a memoria?")){
+    conversation=[];
     longMemory={};
-    saveMemory();
+    saveAll();
     render();
   }
 }
