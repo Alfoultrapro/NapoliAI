@@ -3,104 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <title>NapoliAI</title>
+
 <style>
-  body {
-    font-family: 'Arial', sans-serif;
-    background: #cce6ff;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    margin: 0;
-  }
+body {
+  font-family: Arial, sans-serif;
+  background: #cce6ff;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  h1 {
-    background: #004080;
-    color: white;
-    padding: 25px;
-    text-align: center;
-    margin: 0;
-    font-size: 2.8em; /* Titolo più grande */
-  }
+h1 {
+  background: #004080;
+  color: white;
+  padding: 25px;
+  margin: 0;
+  text-align: center;
+  font-size: 2.8em;
+}
 
-  .chat-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 20px;
-    overflow-y: auto;
-  }
+.chat-wrapper {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
 
-  .msg {
-    max-width: 70%;
-    padding: 18px 24px;   /* messaggi più grandi */
-    margin-bottom: 15px;
-    border-radius: 25px;
-    font-size: 1.6em;     /* font più grande */
-    line-height: 1.6em;
-    word-wrap: break-word;
-    animation: fadeIn 0.2s ease;
-  }
+.msg {
+  max-width: 75%;
+  padding: 18px 24px;
+  margin-bottom: 15px;
+  border-radius: 25px;
+  font-size: 1.6em;
+  line-height: 1.6em;
+  word-wrap: break-word;
+}
 
-  .user {
-    background: #99ccff;
-    align-self: flex-end;
-    border-bottom-right-radius: 0;
-    color: #004080;
-  }
+.user {
+  background: #99ccff;
+  color: #004080;
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+}
 
-  .ai {
-    background: #004080;
-    color: white;
-    align-self: flex-start;
-    border-bottom-left-radius: 0;
-  }
+.ai {
+  background: #004080;
+  color: white;
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+}
 
-  @keyframes fadeIn {
-    from {opacity:0; transform: translateY(10px);}
-    to {opacity:1; transform: translateY(0);}
-  }
+.msg img {
+  max-width: 100%;
+  border-radius: 20px;
+  margin-top: 10px;
+}
 
-  .input-area {
-    display: flex;
-    padding: 12px;
-    gap: 10px;
-    border-top: 2px solid #004080;
-    background: #cce6ff;
-  }
+.input-area {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-top: 2px solid #004080;
+  background: #cce6ff;
+}
 
-  .input-area input {
-    flex: 1;
-    padding: 20px;         /* input più grande */
-    font-size: 1.5em;      /* font più grande */
-    border-radius: 30px;
-    border: 2px solid #004080;
-  }
+.input-area input {
+  flex: 1;
+  padding: 20px;
+  font-size: 1.5em;
+  border-radius: 30px;
+  border: 2px solid #004080;
+}
 
-  .input-area button {
-    padding: 18px 26px;     /* pulsanti più grandi */
-    font-size: 1.5em;       /* font più grande */
-    border-radius: 30px;
-    border: none;
-    background: #004080;
-    color: white;
-    cursor: pointer;
-  }
+.input-area button {
+  padding: 18px 26px;
+  font-size: 1.5em;
+  border-radius: 30px;
+  border: none;
+  background: #004080;
+  color: white;
+  cursor: pointer;
+}
 
-  footer {
-    text-align: center;
-    font-size: 1em;       /* leggermente più grande */
-    color: #004080;
-    padding: 6px;
-  }
+footer {
+  text-align: center;
+  color: #004080;
+  padding: 6px;
+}
 
-  @media(max-width:600px){
-    .msg { max-width: 80%; font-size: 1.4em; padding: 14px 18px; }
-    .input-area input, .input-area button { font-size: 1.4em; padding: 16px; }
-    h1 { font-size: 2.2em; padding: 18px; }
-  }
+@media (max-width:600px) {
+  .msg { font-size: 1.4em; max-width: 85%; }
+  h1 { font-size: 2.2em; }
+}
 </style>
 </head>
+
 <body>
 
 <h1>NapoliAI</h1>
@@ -108,89 +107,121 @@
 <div class="chat-wrapper" id="chat"></div>
 
 <div class="input-area">
-  <input id="msg" placeholder="Scrivi cca...">
+  <input id="msg" placeholder="Scrivi o descrivi 'a figura...">
   <button onclick="send()">Invia</button>
+  <button onclick="sendImage()">🎨</button>
   <button onclick="resetChat()">RESET</button>
 </div>
 
-<footer>Powered by NapoliAI – Dialetto stretto napoletano 💙</footer>
+<footer>NapoliAI - fatto da Alfonso Elefante</footer>
 
 <script src="https://js.puter.com/v2/"></script>
+
 <script>
-  const chatDiv = document.getElementById("chat");
-  const input = document.getElementById("msg");
+const chatDiv = document.getElementById("chat");
+const input = document.getElementById("msg");
 
-  const systemPrompt = {
-    role: "system",
-    content: "Sei NapoliAI, chatbot che parla solo in dialetto napoletano stretto. Rispondi sempre in napoletano, usa emoji tipiche e tono allegro."
-  };
+const systemPrompt = {
+  role: "system",
+  content: "Sei NapoliAI. Parla SOLO in dialetto napoletano stretto. Nun usare italiano. Usa emoji e tono simpatico."
+};
 
-  let conversation = JSON.parse(localStorage.getItem('napolia_conversation')) || [systemPrompt];
+let conversation = JSON.parse(localStorage.getItem("napolia_conversation")) || [systemPrompt];
 
-  function renderChat() {
-    chatDiv.innerHTML = "";
-    for (let msg of conversation) {
-      if(msg.role === "system") continue;
-      const div = document.createElement("div");
-      div.classList.add("msg", msg.role==="user"?"user":"ai");
-      div.innerHTML = msg.content + (msg.role==="user"?" 🏠":" 🎉🍕🎭");
-      chatDiv.appendChild(div);
-    }
-    chatDiv.scrollTop = chatDiv.scrollHeight;
+function renderChat() {
+  chatDiv.innerHTML = "";
+  for (let msg of conversation) {
+    if (msg.role === "system") continue;
+    const div = document.createElement("div");
+    div.className = "msg " + (msg.role === "user" ? "user" : "ai");
+    div.innerHTML = msg.content;
+    chatDiv.appendChild(div);
   }
+  chatDiv.scrollTop = chatDiv.scrollHeight;
+}
 
+renderChat();
+
+function saveConversation() {
+  localStorage.setItem("napolia_conversation", JSON.stringify(conversation));
+}
+
+async function send() {
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+
+  conversation.push({ role: "user", content: text });
   renderChat();
+  saveConversation();
 
-  async function send() {
-    const userMsg = input.value.trim();
-    if(!userMsg) return;
-    input.value = "";
+  const aiDiv = document.createElement("div");
+  aiDiv.className = "msg ai";
+  chatDiv.appendChild(aiDiv);
 
-    conversation.push({ role: "user", content: userMsg });
-    renderChat();
+  try {
+    const response = await puter.ai.chat(
+      [systemPrompt, ...conversation.filter(m => m.role !== "system")],
+      { model: "gpt-5-nano", stream: true }
+    );
+
+    for await (const part of response) {
+      if (part?.text) {
+        aiDiv.innerHTML += part.text;
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      }
+    }
+
+    conversation.push({ role: "assistant", content: aiDiv.innerHTML });
     saveConversation();
 
-    const aiDiv = document.createElement("div");
-    aiDiv.classList.add("msg", "ai");
-    chatDiv.appendChild(aiDiv);
-    chatDiv.scrollTop = chatDiv.scrollHeight;
-
-    try {
-      const response = await puter.ai.chat(
-        [systemPrompt, ...conversation.filter(m => m.role !== "system")],
-        { model: "gpt-5-nano", stream: true }
-      );
-
-      for await (const part of response) {
-        if(part?.text) {
-          aiDiv.innerHTML += part.text;
-          chatDiv.scrollTop = chatDiv.scrollHeight;
-        }
-      }
-
-      conversation.push({ role: "assistant", content: aiDiv.innerHTML });
-      saveConversation();
-
-    } catch(err) {
-      aiDiv.innerHTML = "⚠️ Errore AI: " + err.message;
-    }
+  } catch (e) {
+    aiDiv.innerHTML = "⚠️ Aggio avuto nu problema 😢";
   }
+}
 
-  function saveConversation() {
-    localStorage.setItem('napolia_conversation', JSON.stringify(conversation));
+async function sendImage() {
+  const prompt = input.value.trim();
+  if (!prompt) return;
+  input.value = "";
+
+  conversation.push({ role: "user", content: "🎨 " + prompt });
+  renderChat();
+  saveConversation();
+
+  const imgDiv = document.createElement("div");
+  imgDiv.className = "msg ai";
+  imgDiv.innerHTML = "🎨 Sto facenno 'a magia...";
+  chatDiv.appendChild(imgDiv);
+  chatDiv.scrollTop = chatDiv.scrollHeight;
+
+  try {
+    const img = await puter.ai.image(prompt, { size: "1024x1024" });
+
+    imgDiv.innerHTML = `
+      <div>🖼️ ${prompt}</div>
+      <img src="${img.url}">
+    `;
+
+    conversation.push({ role: "assistant", content: imgDiv.innerHTML });
+    saveConversation();
+
+  } catch (e) {
+    imgDiv.innerHTML = "⚠️ Nun riesco a fa 'a figura 😢";
   }
+}
 
-  function resetChat() {
-    if(confirm("Sei sicuro di voler resettare la chat? Tutti i messaggi verranno cancellati.")) {
-      conversation = [systemPrompt];
-      localStorage.removeItem('napolia_conversation');
-      renderChat();
-    }
+function resetChat() {
+  if (confirm("Vuò cancellà tutta 'a chat?")) {
+    conversation = [systemPrompt];
+    localStorage.removeItem("napolia_conversation");
+    renderChat();
   }
+}
 
-  input.addEventListener("keypress", function(e){
-    if(e.key === "Enter") send();
-  });
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") send();
+});
 </script>
 
 </body>
