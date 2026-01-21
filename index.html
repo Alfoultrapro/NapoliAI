@@ -5,223 +5,133 @@
 <title>NapoliAI</title>
 
 <style>
-body {
+body{
   font-family: Arial, sans-serif;
-  background: #cce6ff;
-  margin: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  background:#cce6ff;
+  margin:0;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
 }
-h1 {
-  background: #004080;
-  color: white;
-  padding: 25px;
-  margin: 0;
-  text-align: center;
-  font-size: 2.6em;
-}
-.chat-wrapper {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-.msg {
-  max-width: 80%;
-  padding: 18px 24px;
-  margin-bottom: 15px;
-  border-radius: 25px;
-  font-size: 1.5em;
-}
-.user {
-  background: #99ccff;
-  color: #004080;
-  align-self: flex-end;
-}
-.ai {
-  background: #004080;
-  color: white;
-  align-self: flex-start;
-}
-.msg img {
-  max-width: 100%;
-  border-radius: 15px;
-  margin-top: 10px;
-}
-.input-area {
-  display: flex;
-  gap: 8px;
-  padding: 12px;
-  border-top: 2px solid #004080;
-  background: #cce6ff;
-}
-input, button {
-  font-size: 1.2em;
-  padding: 14px;
-  border-radius: 20px;
-  border: 2px solid #004080;
-}
-button {
-  background: #004080;
-  color: white;
-}
-input[type=file] { display:none; }
-label {
+header{
   background:#004080;
   color:white;
-  padding:14px;
-  border-radius:20px;
-  cursor:pointer;
+  padding:22px;
+  text-align:center;
+  font-size:2.5em;
 }
-.voice-on { background:#00aaff !important; }
+#chat{
+  flex:1;
+  padding:20px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+}
+.msg{
+  max-width:80%;
+  padding:18px 22px;
+  margin-bottom:14px;
+  border-radius:22px;
+  font-size:1.4em;
+}
+.user{
+  background:#99ccff;
+  color:#004080;
+  align-self:flex-end;
+}
+.ai{
+  background:#004080;
+  color:white;
+  align-self:flex-start;
+}
+.input-area{
+  display:flex;
+  gap:10px;
+  padding:12px;
+  border-top:2px solid #004080;
+  background:#cce6ff;
+}
+input{
+  flex:1;
+  padding:16px;
+  font-size:1.3em;
+  border-radius:20px;
+  border:2px solid #004080;
+}
+button{
+  padding:16px 22px;
+  font-size:1.2em;
+  border-radius:20px;
+  border:2px solid #004080;
+  background:#004080;
+  color:white;
+}
 </style>
 </head>
 
 <body>
-<h1>NapoliAI</h1>
+<header>NapoliAI</header>
 
-<div class="chat-wrapper" id="chat"></div>
+<div id="chat"></div>
 
 <div class="input-area">
-  <label>
-    🖼️
-    <input type="file" accept="image/*" onchange="handleImage(this)">
-  </label>
-  <label>
-    📂
-    <input type="file" accept=".txt,.md,.json,.csv" onchange="handleFile(this)">
-  </label>
-  <input id="msg" placeholder="Scriveme...">
+  <input id="input" placeholder="Scriveme...">
   <button onclick="send()">Invia</button>
-  <button id="voiceBtn" onclick="toggleVoice()">🔊</button>
-  <button onclick="resetChat()">RESET</button>
+  <button onclick="resetChat()">Reset</button>
 </div>
 
 <script src="https://js.puter.com/v2/"></script>
 <script>
-const chatDiv = document.getElementById("chat");
-const input = document.getElementById("msg");
-const voiceBtn = document.getElementById("voiceBtn");
+const chat=document.getElementById("chat");
+const input=document.getElementById("input");
 
-let voiceEnabled = false;
-let memory = JSON.parse(localStorage.getItem("napolia_long_memory")) || {};
+let longMemory = JSON.parse(localStorage.getItem("napoli_memory")) || {};
 
-const systemBase = `
+const systemPrompt = `
 Si NapoliAI.
 Parla SOLO in dialetto napoletano stretto.
-Si simpatico ma preciso.
-Usa pure 'a memoria lunga si serve.
+Si naturale, amichevole e chiaro.
+Usa 'a memoria si serve.
 `;
 
-let conversation = [{ role:"system", content: systemBase }];
+let conversation=[{role:"system",content:systemPrompt}];
 
-function saveLongMemory() {
-  localStorage.setItem("napolia_long_memory", JSON.stringify(memory));
+function saveMemory(){
+  localStorage.setItem("napoli_memory", JSON.stringify(longMemory));
 }
 
-function render() {
-  chatDiv.innerHTML="";
+function render(){
+  chat.innerHTML="";
   conversation.forEach(m=>{
     if(m.role==="system") return;
     const d=document.createElement("div");
     d.className="msg "+(m.role==="user"?"user":"ai");
     d.innerHTML=m.content;
-    chatDiv.appendChild(d);
+    chat.appendChild(d);
   });
-  chatDiv.scrollTop=chatDiv.scrollHeight;
+  chat.scrollTop=chat.scrollHeight;
 }
 
-function toggleVoice(){
-  voiceEnabled=!voiceEnabled;
-  voiceBtn.classList.toggle("voice-on",voiceEnabled);
-}
-
-function speak(t){
-  if(!voiceEnabled) return;
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(t);
-  u.lang="it-IT";
-  speechSynthesis.speak(u);
-}
-
-/* 📂 FILE TESTO */
-function handleFile(inputFile){
-  const file=inputFile.files[0];
-  const r=new FileReader();
-  r.onload=()=>{
-    input.value="Analizza chisto file:\n\n"+r.result.slice(0,6000);
-    send();
-  };
-  r.readAsText(file);
-}
-
-/* 🖼️ IMMAGINI */
-function handleImage(inputFile){
-  const file=inputFile.files[0];
-  const r=new FileReader();
-  r.onload=()=>{
-    conversation.push({
-      role:"user",
-      content:`<b>🖼️ Analizza sta immagine:</b><br><img src="${r.result}">`
-    });
-    render();
-
-    analyzeImage(r.result);
-  };
-  r.readAsDataURL(file);
-}
-
-async function analyzeImage(base64){
-  const aiDiv=document.createElement("div");
-  aiDiv.className="msg ai";
-  chatDiv.appendChild(aiDiv);
-
-  const response = await puter.ai.chat(
-    [
-      { role:"system", content: systemBase },
-      {
-        role:"user",
-        content:[
-          { type:"text", text:"Spiegami che vaje vedènno int'a sta immagine." },
-          { type:"image", image: base64 }
-        ]
-      }
-    ],
-    { model:"gpt-5-nano", stream:true }
-  );
-
-  let full="";
-  for await(const part of response){
-    if(part?.text){
-      full+=part.text;
-      aiDiv.innerHTML+=part.text;
-    }
-  }
-  speak(full);
-}
-
-/* 💬 CHAT */
 async function send(){
-  const t=input.value.trim();
-  if(!t) return;
+  const text=input.value.trim();
+  if(!text) return;
   input.value="";
-  conversation.push({role:"user",content:t});
+
+  conversation.push({role:"user",content:text});
   render();
 
   const aiDiv=document.createElement("div");
   aiDiv.className="msg ai";
-  chatDiv.appendChild(aiDiv);
+  chat.appendChild(aiDiv);
 
-  const memTxt = Object.keys(memory).length
-    ? "Memoria utente: "+JSON.stringify(memory)
+  const memTxt = Object.keys(longMemory).length
+    ? "Memoria utente: "+JSON.stringify(longMemory)
     : "";
 
   const response = await puter.ai.chat(
     [
-      { role:"system", content: systemBase + "\n" + memTxt },
-      ...conversation.slice(-6)
+      { role:"system", content: systemPrompt + "\n" + memTxt },
+      ...conversation.slice(-8)
     ],
     { model:"gpt-5-nano", stream:true }
   );
@@ -234,20 +144,18 @@ async function send(){
     }
   }
 
-  // salva preferenze automatiche
-  if(full.includes("ricordo")){
-    memory.ultima_info = full;
-    saveLongMemory();
+  // esempio memoria automatica
+  if(full.includes("me ricordo")){
+    longMemory.ultima_info = full;
+    saveMemory();
   }
-
-  speak(full);
 }
 
 function resetChat(){
-  if(confirm("Cancellà tutto?")){
-    conversation=[{role:"system",content:systemBase}];
-    memory={};
-    saveLongMemory();
+  if(confirm("Vuò cancella tutto?")){
+    conversation=[{role:"system",content:systemPrompt}];
+    longMemory={};
+    saveMemory();
     render();
   }
 }
