@@ -29,6 +29,8 @@ button { background:#004080; color:white; cursor:pointer; }
     <option value="realistic">📷 Realistica</option>
     <option value="cartoon">🎨 Cartoon</option>
     <option value="anime">👾 Anime</option>
+    <option value="free">🆓 Libero</option>
+  </select>
   </select>
   <input id="msg" placeholder="Scrivi o descrivi 'a figura...">
   <button onclick="send()">Invia</button>
@@ -100,6 +102,7 @@ async function sendImage(){
   if(style==="realistic") stylePrompt="ultra realistic, photography, 8k";
   if(style==="cartoon") stylePrompt="cartoon style, vibrant colors, illustration";
   if(style==="anime") stylePrompt="anime style, studio ghibli, detailed";
+  if(style==="free") stylePrompt="";
   const finalPrompt=prompt+", "+stylePrompt;
 
   conversation.push({role:"user", content:"🎨 "+prompt});
