@@ -125,7 +125,7 @@ async function sendImage(){
 
   try{
     // funzione Puter txt2img
-    await puter.ai.txt2img(finalPrompt,true).then((image)=>{
+    await puter.ai.txt2img(finalPrompt,false).then((image)=>{
       clearInterval(timer);
       bar.style.width="100%";
       percentTxt.innerText="100%";
