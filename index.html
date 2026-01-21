@@ -127,6 +127,8 @@ async function sendImage(){
     // funzione Puter txt2img
     await puter.ai.txt2img(finalPrompt,false).then((image)=>{
       clearInterval(timer);
+      model: "SDXL",
+      quality: "high" 
       bar.style.width="100%";
       percentTxt.innerText="100%";
 
